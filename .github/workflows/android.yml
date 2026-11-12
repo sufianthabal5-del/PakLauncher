@@ -1,4 +1,4 @@
-name: CS Launcher V2 CI
+name: PakLauncherCli
 
 on:
   pull_request:
