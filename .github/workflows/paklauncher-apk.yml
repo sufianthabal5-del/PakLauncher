@@ -1,0 +1,75 @@
+name: PakLauncher Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+    paths:
+      - 'app_pojavlauncher/**'
+      - 'gradle/**'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - '.github/workflows/paklauncher-apk.yml'
+
+permissions:
+  contents: read
+
+env:
+  CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout source and submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install Android SDK and NDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install required NDK
+        run: sdkmanager "ndk;27.3.13750724" "cmake;3.22.1"
+
+      - name: Download Java 8 runtime artifact
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: build.yml
+          path: app_pojavlauncher/src/main/assets/components/jre
+          workflow_conclusion: success
+          repo: AngelAuraMC/angelauramc-openjdk-build
+          branch: buildjre8
+          name: jre8-pojav
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11'
+          validate-wrappers: false
+
+      - name: Prepare output
+        run: mkdir -p out
+
+      - name: Build PakLauncher release APK
+        run: ./gradlew :app_pojavlauncher:assembleRelease --no-daemon --stacktrace
+
+      - name: Collect APK
+        run: |
+          APK=$(find app_pojavlauncher/build/outputs/apk/release -name '*.apk' | head -n 1)
+          test -n "$APK"
+          cp "$APK" out/PakLauncher-release.apk
+          sha256sum out/PakLauncher-release.apk > out/PakLauncher-release.sha256
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: PakLauncher-APK
+          path: out/*
+          if-no-files-found: error

@@ -1,0 +1,14 @@
+{
+  "client_id": "430bd761-77ec-400c-95b4-de14c9755d61",
+  "authorization_user_agent": "DEFAULT",
+  "redirect_uri": "msauth://com.pak.launcher/cLGOa%2F5988WEWmubSKt%2F8vRn414%3D",
+  "authorities": [
+    {
+      "type": "AAD",
+      "audience": {
+        "type": "AzureADandPersonalMicrosoftAccount",
+        "tenant_id": "common"
+      }
+    }
+  ]
+}
